@@ -2,10 +2,10 @@
 #
 # File Name : rouge.py
 #
-# Description : Computes ROUGE-L metric as described by Lin and Hovey (2004)
+# Description : Computes ROUGE-F1 metric as described by localized narratives
 #
-# Creation Date : 2015-01-07 06:03
-# Author : Ramakrishna Vedantam <vrama91@vt.edu>
+# Creation Date : 2021-01-20 06:03
+# Author : naykun <yankun1138283845@foxmail.com>
 
 import numpy as np
 import pdb
@@ -33,7 +33,22 @@ def my_lcs(string, sub):
 
     return lengths[len(string)][len(sub)]
 
-class Rouge():
+def my_1gram(ref, can):
+    """
+    Calculates 1 gram matched number for a pair of tokenized strings
+    :param string : list of str : tokens from a string split using whitespace
+    :param sub : list of str : shorter string, also split using whitespace
+    :returns: length (list of int): number of the matched word between the two strings
+    """
+    ref_set = set(ref)
+    can_set = set(can)
+
+    prec_cnt = sum([1 if (w in ref_set) else 0 for w in can])
+    rec_cnt = sum([1 if (w in can_set) else 0 for w in ref])
+
+    return prec_cnt, rec_cnt
+
+class RougeF1():
     '''
     Class for computing ROUGE-L score for a set of candidate sentences for the MS COCO test set
 
@@ -61,9 +76,9 @@ class Rouge():
             # split into tokens
             token_r = reference.split(" ")
             # compute the longest common subsequence
-            lcs = my_lcs(token_r, token_c)
-            prec.append(lcs/float(len(token_c)))
-            rec.append(lcs/float(len(token_r)))
+            prec_cnt, rec_cnt = my_1gram(token_r, token_c)
+            prec.append(prec_cnt/float(len(token_c)))
+            rec.append(rec_cnt/float(len(token_r)))
 
         prec_max = max(prec)
         rec_max = max(rec)
@@ -94,6 +109,7 @@ class Rouge():
             for j in range(len(hypo)):
                 score_img = self.calc_score([hypo[j]], ref)
                 score.append(score_img)
+
             # score.append(self.calc_score(hypo, ref))
 
             # Sanity check.
@@ -106,4 +122,4 @@ class Rouge():
         return average_score, np.array(score)
 
     def method(self):
-        return "Rouge"
+        return "Rouge-F1"
